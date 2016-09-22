@@ -1,0 +1,36 @@
+---
+title: "hw9_531"
+author: "mengjiao"
+date: "April 3, 2016"
+output: html_document
+---
+
+###1. Assessing and improving algorithmic paramters
+(1)cooling.fraction.50
+If we cooled quickly, the convergence plots may converge faster or we may miss the maximum log likelihood. If we cooled slowly, it may do not coverge in a given iteration.
+
+(2)mif_iterations
+300 is large enough for the parameters and loglik to converge. It only needs about 150 to 200 iterations to converge from the diagnosis of the convergence.
+
+(3)Different mif runs 
+Differenct initial parameters lead to very large inconsistency in the convergent parameter. Different beta initilization lead to similar choice. But different mu_I and rho lead to very different parameters. However, loglik seems to converge. Therefore, it may show that it is a flat likelihood, since different parameters leads to similar likelihood.
+
+(4)Particle filter
+From the last iteration, it shows at time 12, the effective sample size is rather small. May we need to increase the number of particles.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+```
+
+
+```{r}
+summary(cars)
+```
+
+
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+

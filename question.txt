@@ -1,0 +1,205 @@
+3.1.1
+Exploratory data analysis   Plot data
+For mean stationarity, lack for a significant trend (if we know how to test this)
+For covariance stationarity
+compute sample ACF for 1st and 2nd half
+
+question after
+
+3.1.2
+
+3.1.3
+Usually we have only 1 time series(n=1)
+
+Stationarity is convenient since it approximates replication(n=N)
+Stationary models can be used to build non-stationary models
+(e.g. trend + stationary)
+
+3.1.4
+X "seems" to show some trend  non-stationary
+Y might have regular oscillations which may or may not be consistant with stationary
+Trick: X is the 1st 50 observations of y!
+
+Stationary depends on what is the time scale and the time window you are modeling on
+
+3.3.2
+throw away the start of the simulating to get stationary start regardless of the initializing
+
+3.3.3
+For arima.sim  it is (presumably) debugged if you call it right, you may avoid errors
+Usually Existing software generalizes better
+
+4.1.1
+Is white noise weak stationary or strictly stationary?
+It depends:
+If {En} is iid, then {Xn} is strictly stationary.
+
+3.5.4
+This refutes an independent white noise model.
+Returns look uncorrelated but NOT independent
+
+4.4.1 
+For diagnosis we estimate the {En} process, and see if  this looks like
+white noise. We can't get a stable estimate of {En} for a non-invertible ARMA. By formally,
+inverting the MA polynomial.
+
+Note 5
+4.2
+When the MLE is not unique, we say that theta is not identifiable.
+
+
+5.3.4
+Could  try different parameters values?
+If behavior of estimator varies slowly, local behavior approximates global behavior
+
+5.5.1 
+Interpret profile likelihood
+MLE is at fi1 = 1
+However, all points on the profile have a profile log likelihood within
+1.92 log units of the maximum (A C.I.using Wilks's theorem at 95% confidence)
+Arima() CI based on Fisher information: This doesn't take into account
+the nonlinear relationship between parameters that the profile discovers.
+
+5.5.6 Truth 
+AR1 (1-fi1B)Xn = En
+µÈ¼ÛÓÚ  (1-fi1B)(1+theta1B)Xn = (1+theta1B)En
+The roots of the AR(2,1) almost cancelled each other.
+
+5.6.1
+ARMA(p,q) within ARMA(p',q')
+if p less equal to p', q less equal to q'
+Consequence:Adding a parameter cannot decrease the maximized likelyhood.
+Therefore ,adding one parameter cannot increase the AIC by more than 2 units.
+
+In the table eg: ARMA(2,1) to ARMA(3,1) adds 1 parameter but increases
+the computed AIC by >2
+
+This is mathematically inconsistant with perfect maximization.
+
+
+6.1.1
+So [S3] is an SARMA model
+
+SARMA(1,0)x(1,0)12  
+AR : (1-fiB)(1-FiB12)=1-fiB-FiB12+fiFi(B13)
+
+Everyone uses multiplicative SARMA models
+
+6.1.4
+Not catching the monthly trend
+Check higher orders. Keep looking.
+
+6.2.1
+fi(B)(1-B)Xn = (1-B)fi(B)Xn
+ARMA : fi(B)(Xn-miu)=kesai(B)En
+
+Treatment of miu is a bit different for ARIMA
+Actually the treatment of initial values is different as well
+Take the differenced data and fit it in ARMA, it needs the first data to get the first difference
+
+6.2.3
+The difference operator is linear, so we can move E(expectation) through (1-B)
+Yn=(1-B)Xn
+E(Yn)=(1-B)E(Xn)=miu
+E(Xn)-E(X(n-1))=miu
+E(Xn)=A+nmiu
+
+6.4.3
+1) Likelihood ratio test
+2) Test coefficient = 0 by observed Fisher information
+
+We would expect 1) to be better, since 2) is more dependent on asymptotics.
+You could carry out a simulation experiment to check
+
+
+7.2.5
+Taylor series expansion
+
+7.3.1
+dealing with missing data
+1.close ranks : just ignore this time point   e.g. 1 23/ 2 NA/ 3 71 ->1 23/ 2 71
+2.interpolate somehow, e.g. using the sample mean
+3.Use a method that allows unequally spaced measurements
+
+Note:
+If we are concerned, we could check whether different resolutions give the same conclusions
+
+????95% confidence ???
+
+Low frequency behavior is often indistinguishable from trend.
+e.g. a cycle at frequency 1/N cycles per unit time.
+
+7.3.2
+R defaults to a repeated moving mean smoother.
+A moving mean smoother with span 3 takes xn -> 1/3(x(n-1)+ xn + x(n+1))
+Advice:"Spans should be odd + it helps if more than 1 is used"
+
+Why AR not ARMA for spectrum ()?
+Pure AR models can be written as lagged regression & fitted quickly
+
+7.3.3
+One sided is more plausible. Ann Arbor follows the global trend or opporsite.
+Perhaps the most scientifically plausible is Ann Arbor follows the global trend.
+Spectrum estimation is not appropriate for trend
+
+8.1.1
+frequency has the units time^-1   Then check by looking at the highest frequency.
+The highest cycle we can see from the plot is 6 cycle per 12 observations is half a cycle per year.
+So the units of x-axis is cycles per year.
+
+The peaks on the raw data is corresponding to the seasonality.
+
+8.1.2
+Peaks at 1,2,3,4,5,6 cycles per year are seasonality.
+Sinusoidal seasonality would have a peak at 1 cycle per year.
+Here it looks like 2 equal peaks --> Xmax and summer.
+Removing seasonality turns seasonal peaks into troughs.
+
+8.2.1
+The BLS vigorously removes seasonal components,shrinking them by a factor of ~= 10^-3,10^-4
+
+8.2.3
+It knocked down the high frequency components. All higher than 0.1 cycle per year is suppressed below 10^-5
+
+8.3.2
+-The cycle looks too long for business.
+-Some three year cycles are caught as noise in the decomposition.
+
+8.3.2
+Answer: Business cycles are often considered to have periods as low as three years or lower.
+Looking back at our decomposition, we see that these have been classified as noise.
+
+8.3.5
+There is no clear peak, therefore no clear evidence that business cycles have a characteristic length.
+
+9.1.3
+Algebra
+
+9.1.4
+Counter-example  stationarity here means strict stationarity
+Poisson counting process
+Gaussian random walk(see hw1)
+If there is a stationary distribution AND the process is initialized in it, then homogenous almost->strict stationary
+
+
+11.4 skeleton plot matplot
+
+Burn in : remove the first part of the simulation to remove transient(consequences of initial conditions) effects 
+
+
+Over-dispersion:Data have higher variance than the assumed mean-variance relationship implies
+Poisson GLM: Yi~Poisson(miui)
+miui=exp(alpha+betaXi)
+E[Yi]=miui
+Var[Yi]=miui
+
+13.9.2
+Use the log scale for the "uniform" sampling for the stating values of the global searches.
+
+15.3.1 
+For: 
+ACF is slowly decaying,This might happen if the variance changes with time
+
+Against:
+What if the "variance" varies randomly. Formally the conditional variance Var(Yn|Y1:n-1) can be a
+function of Y(1:n-1) without  contradictory stationary.

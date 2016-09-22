@@ -1,0 +1,112 @@
+---
+title: "STATS531 HW10"
+author: "Xiaoyue Liu    UMID:28589009    xiaoyliu@umich.edu"
+date: "April 11, 2016"
+output:
+  html_document:
+    fig_caption: true
+    theme: flatly
+    toc: yes
+    toc_depth: 2
+    number_sections: true
+    pandoc_args: [
+      "--number-offset=10"
+    ]
+---
+
+\newcommand\prob{\mathbb{P}}
+\newcommand\E{\mathbb{E}}
+\newcommand\var{\mathrm{Var}}
+\newcommand\cov{\mathrm{Cov}}
+\newcommand\loglik{\ell}
+\newcommand\R{\mathbb{R}}
+\newcommand\data[1]{#1^*}
+\newcommand\params{\, ; \,}
+\newcommand\transpose{\scriptsize{T}}
+\newcommand\eqspace{\quad\quad}
+\newcommand\myeq[1]{\eqspace \displaystyle #1}
+\newcommand\lik{\mathscr{L}}
+\newcommand\loglik{\ell}
+\newcommand\profileloglik[1]{\ell^\mathrm{profile}_#1}
+\newcommand\ar{\phi}
+\newcommand\ma{\psi}
+\newcommand\AR{\Phi}
+\newcommand\MA{\Psi}
+\newcommand\ev{u}
+\newcommand\given{{\, | \,}}
+\newcommand\equals{{=\,}}
+\newcommand\matA{\mathbb{A}}
+\newcommand\matB{\mathbb{B}}
+\newcommand\matH{\mathbb{H}}
+\newcommand\covmatX{\mathbb{U}}
+\newcommand\covmatY{\mathbb{V}}
+
+
+-------
+
+--------
+```{r knitr-opts,include=FALSE,purl=FALSE,cache=FALSE}
+prefix <- ''
+library(knitr)
+opts_chunk$set(
+  progress=TRUE,
+  prompt=FALSE,tidy=FALSE,highlight=TRUE,
+  strip.white=TRUE,
+  warning=FALSE,
+  message=FALSE,
+  error=FALSE,
+  echo=TRUE,
+  cache=TRUE,
+  cache.extra=rand_seed,
+  results='markup',
+  fig.show='asis',
+  size='small',
+  fig.lp="fig:",
+  fig.path=paste0("figure/",prefix,"-"),
+  cache.path=paste0("cache/",prefix,"-"),
+  fig.pos="h!",
+  fig.align='center',
+  fig.height=4,fig.width=6.83,
+  dpi=300,
+  dev='png',
+  dev.args=list(bg='transparent')
+  )
+
+```
+```{r opts,include=FALSE,cache=FALSE}
+options(
+  keep.source=TRUE,
+  stringsAsFactors=FALSE,
+  encoding="UTF-8"
+  )
+```
+
+```{r prelims,echo=F,cache=F}
+set.seed(594709947L)
+require(ggplot2)
+theme_set(theme_bw())
+require(plyr)
+require(reshape2)
+require(foreach)
+require(doParallel)
+require(pomp)
+stopifnot(packageVersion("pomp")>="0.69-1")
+```
+
+* My data is from Project Tycho.
+
+
+```{r read_data}
+CA <- read.csv("HEPATITIS_A_Cases_CALIFORNIA.csv",skip=2,header=T)
+CA <- CA[CA$YEAR>=1966,]
+CA$Time <- CA$YEAR+CA$WEEK/52
+plot(CA$Time,CA$CALIFORNIA,main="Hepatitis A cases in California from 1966 to 2011",type='l')
+
+MI <-read.csv("HEPATITIS_A_Cases_MICHIGAN.csv",skip=2,header=T)
+MI <- MI[MI$YEAR>=1966,]
+MI$Time <- MI$YEAR+MI$WEEK/52
+plot(MI$Time,MI$MICHIGAN,main="Hepatitis A cases in Michigan from 1966 to 2011",type='l')
+blowfly <- read.csv("blowfly4.csv",skip=3, header=T)
+```
+
+blowfly <- read.csv("blowfly4.csv",skip=3, header=T)

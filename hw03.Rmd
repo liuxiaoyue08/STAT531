@@ -1,0 +1,62 @@
+\newcommand\prob{\mathbb{P}}
+\newcommand\E{\mathbb{E}}
+\newcommand\var{\mathrm{Var}}
+\newcommand\cov{\mathrm{Cov}}
+
+-----------
+**<big>STATS 531   HW3</big>**.
+Xiaoyue Liu
+Platina Liu
+UMID: 28589009
+xiaoyliu@umich.edu
+--------
+
+**<big>1.Read in the data</big>**
+We mainly work on the Ann Arbor January Low temperature time series.In the dataset we have 12 variables, and the low temperature time series are in the Low column.
+
+```{r read_data, eval=FALSE}
+x <- read.table(file="http://ionides.github.io/531w16/intro/ann_arbor_weather.csv",header=TRUE)
+head(x)
+```
+There are some missing values within the Low variable. Here we delete them before the analysis.
+```{r}
+x1 <- na.omit(x)
+plot(Low~Year,data=x1,type="l")
+```
+
+
+2.  To simplify with the techniques we have studied, we assume that it is under a null hypothesis that there is no trend. 
+```{r}
+aic_table <- function(data,P,Q){
+  table <- matrix(NA,(P+1),(Q+1))
+  for(p in 0:P) {
+    for(q in 0:Q) {
+       table[p+1,q+1] <- arima(data,order=c(p,0,q))$aic
+    }
+  }
+  dimnames(table) <- list(paste("<b> AR",0:P, "</b>", sep=""),paste("MA",0:Q,sep=""))
+  table
+}
+low_aic_table <- aic_table(x$Low,4,5)
+require(knitr)
+kable(low_aic_table,digits=2)
+```
+It seems that the ARMA(0,0) gives the smallest AIC value. It means that a white noise model may fit the data.
+```{r}
+
+```
+
+
+
+3.  Your report should involve model equations and hypotheses, and should define the notation used. Please be careful to distinguish between symbols representing random variables (usually using capital letters) and numbers. You're welcome to follow the notation in the course notes, and if you deviate from this notation it is especially necessary to define the notation that you choose. 
+
+4.  You are advised to try a few things from the notes, spot something that catches your attention, and try a few more things to investigate it. Write up what you found, and you're finished!
+
+5.  For this homework, you can choose whether or not to include the R code in the HTML document. To tell Rmarkdown not to include the R code in the HTML document, use the `echo=FALSE` chunk option, e.g.,
+<pre><code>```{r chunk_without_code, echo=FALSE}
+cat("only the output of this code chunk will be printed\n")
+```</code></pre>
+Generally, you should only display the code in the HTML document if you think that, in your context, the helpfulness of showing the code outweighs the extra burden on the reader. Recall that the reader can work through the Rmd source file if necessary.
+
+
+-----------

@@ -1,0 +1,161 @@
+---
+title: "STATS531 Homework8"
+author: "Xiaoyue Liu    UMID:28589009    xiaoyliu@umich.edu"
+date: "March 24, 2016"
+output:
+  html_document:
+    fig_caption: true
+    theme: flatly
+    toc: yes
+    toc_depth: 2
+    number_sections: true
+    pandoc_args: [
+      "--number-offset=10"
+    ]
+---
+
+\newcommand\prob{\mathbb{P}}
+\newcommand\E{\mathbb{E}}
+\newcommand\var{\mathrm{Var}}
+\newcommand\cov{\mathrm{Cov}}
+\newcommand\loglik{\ell}
+\newcommand\R{\mathbb{R}}
+\newcommand\data[1]{#1^*}
+\newcommand\params{\, ; \,}
+\newcommand\transpose{\scriptsize{T}}
+\newcommand\eqspace{\quad\quad}
+\newcommand\myeq[1]{\eqspace \displaystyle #1}
+\newcommand\lik{\mathscr{L}}
+\newcommand\loglik{\ell}
+\newcommand\profileloglik[1]{\ell^\mathrm{profile}_#1}
+\newcommand\ar{\phi}
+\newcommand\ma{\psi}
+\newcommand\AR{\Phi}
+\newcommand\MA{\Psi}
+\newcommand\ev{u}
+\newcommand\given{{\, | \,}}
+\newcommand\equals{{=\,}}
+\newcommand\matA{\mathbb{A}}
+\newcommand\matB{\mathbb{B}}
+\newcommand\matH{\mathbb{H}}
+\newcommand\covmatX{\mathbb{U}}
+\newcommand\covmatY{\mathbb{V}}
+
+
+-------
+
+--------
+
+
+**<big><big><big>1. Read in data</big></big></big>**
+
+* Read data from the Internet
+```{r read_data, Message=FALSE}
+set.seed(594709947L)
+require(ggplot2)
+require(plyr)
+require(reshape2)
+require(pomp)
+stopifnot(packageVersion("pomp")>="0.69-1")
+dat <- read.csv("http://ionides.github.io/531w16/notes11/parus.csv")
+head(dat)
+```
+
+* Let's have a look at what the data is like
+```{r simple_plot}
+plot(pop~year,data=dat,type='o')
+```
+
+**<big><big>Question 8.1. Reformulating the Ricker model.</big></big>**
+
+*The Ricker equation can be reparameterized so that the scaling of $P_n$ is explicit:
+$$P_{n+1} = r\,P_{n}\,\exp\left(-\frac{P_{n}}{k}\right).$$
+Modify the `pomp` object created in the notes to reflect this reparameterization. Also, Modify the measurement model so that the data $\data{y_n}$ is modeled as 
+$$Y_n |P_n \sim \mathrm{Negbin}(\phi\,P_n,\psi).$$
+Here, $\mathrm{Negbin}(\mu,\psi)$ is the negative binomial distribution with mean $\mu$ and  probability parameter $\psi$, and therefore variance $\mu/\psi$.
+
+* Firstly get the data into a pomp model
+```{r pomp}
+parus <- pomp(dat,times="year",t0=1959)
+plot(parus)
+```
+
+* Adding the determinstic using the Ricker model
+```{r ricker}
+skel <- Csnippet("DN = r*N*exp(-N/k);")
+pomp(parus,skeleton=skel,skeleton.type='map',statenames=c("N"),paramnames=c("r","k"))->parus
+traj <- trajectory(parus,params=c(N.0=1,r=12, k=5),as.data.frame=TRUE)
+ggplot(data=traj,aes(x=time,y=N))+geom_line()
+```
+
+* Adding in the process model simulator
+```{r process}
+stochStep <- Csnippet("N=r*N*exp(-N/k);")
+pomp(parus,rprocess=discrete.time.sim(step.fun=stochStep,delta.t=1),paramnames=c("r","k"),statenames=c("N")) -> parus
+
+sim <- simulate(parus,params=c(N.0=1,r=12,k=5),as.data.frame=TRUE,states=TRUE)
+plot(N~time,data=sim,type='o')
+lines(N~time,data=traj,type='l',col='red')
+```
+
+* Adding in the measurement model and parameters
+```{r measurement}
+rmeas <- Csnippet("pop = rnbinom(phi*N,si);")
+dmeas <- Csnippet("lik = dnbinom(pop,m,mu=phi*N,si,give_log);")
+pomp(parus,rmeasure=rmeas,statenames=c("N"),paramnames=c("phi","si"))->parus
+coef(parus) <- c(N.0=1,r=12,phi=50,si=0.5,k=5)
+sims<-simulate(parus,nsim=5,as.data.frame=TRUE,include.data=TRUE)
+ggplot(data=sims,mapping=aes(x=time,y=pop))+geom_line()+
+  facet_wrap(~sim)
+```
+
+**<big><big>Question 8.2. Coding a new model.</big></big>**
+
+*Construct a pomp object for the *Parus major* data and the stochastic Beverton-Holt model,
+$$P_{n+1} = \frac{a\,P_n}{1+b\,P_n}\,\varepsilon_n,$$
+where $a$ and $b$ are parameters and
+$$\varepsilon_t \sim \mathrm{Lognormal}(-\tfrac{1}{2}\sigma^2,\sigma^2).$$
+Assume the same measurement model as we used for the Ricker model. Try simulating from a few choices of the parameters. What are the similarities and differences between simulations you obtain from the Beverton-Holt model and those from the Ricker model? Present one simulation to support your comments.
+
+```{r new_model}
+parus <- pomp(dat,time="year",t0=1959)
+```
+
+* Adding the determinstic model
+```{r deter}
+skel <- Csnippet("DN = ((a*N)/(1+(b*N)));")
+parus <- pomp(parus,skeleton=skel,skeleton.type='map',paramnames=c("a", "b"),statenames=c("N"))
+traj <- trajectory(parus,params=c(N.0=1,a=12,b=5),as.data.frame=TRUE)
+ggplot(data=traj,aes(x=time,y=N))+geom_line()
+```
+
+* Adding in the process model simulator
+```{r process_model}
+stochStep <- Csnippet("
+  e = rlnorm(mu,sigma);
+  N = ((a*N)/(1+(b*N)))*e;
+")
+pomp(parus,rprocess=discrete.time.sim(step.fun=stochStep,delta.t=1),paramnames=c("a","b", "mu","sigma"),statenames=c("N","e")) -> parus
+sim <- simulate(parus,params=c(N.0=1,e.0=0,a=12,b=5,sigma=0.5,mu=-0.5*(0.5)^2),as.data.frame=TRUE,states=TRUE)
+plot(N~time,data=sim,type='o')
+lines(N~time,data=traj,type='l',col='red')
+```
+
+* Adding in the measurement model and parameters
+```{r meas_model}
+rmeas <- Csnippet("pop = rpois(phi*N);")
+dmeas <- Csnippet("lik = dpois(pop,phi*N,give_log);")
+pomp(parus,rmeasure=rmeas,dmeasure=dmeas,statenames=c("N"),paramnames=c("phi")) -> parus
+coef(parus) <- c(N.0=1,e.0=0,a=12,b=5,sigma=0.5,mu=-0.5*(0.5)^2,phi=50)
+sims <- simulate(parus,nsim=5,as.data.frame=TRUE,include.data=TRUE)
+ggplot(data=sims,mapping=aes(x=time,y=pop))+geom_line()+facet_wrap(~sim)
+```
+
+* The Ricker model can be seen as a limiting case of the Beverton-Holt model.The Beverton-Holt model can be generalized to include scramble competition.
+
+* For Ricker model, the simulations are very similar in shape. For the Beverton-Holt model, the simulations change a lot in shape.
+
+
+**<big><big>Question 8.3.How long did this homework take? </big></big>**
+
+* It took me about 4.5 hours. 0.5 hour used to install the package. 3 hours of coding and debugging. Finally one hour to modify the parameters and write up the Rmd.

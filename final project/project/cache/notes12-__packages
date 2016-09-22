@@ -1,0 +1,9 @@
+base
+knitr
+ggplot2
+plyr
+reshape2
+foreach
+iterators
+doMC
+pomp

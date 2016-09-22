@@ -1,0 +1,4 @@
+3 responsibilities
+1) see that maximization is imperfect
+2) acknowledge limitations of AIC
+3) do something sensible
